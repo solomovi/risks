@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סימולטור ניהול משברים ואתיקה ארגונית | SCCT</title>
+    <!-- טעינת גופן עברי אקדמי ומודרני (Heebo) ו-Tailwind CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Heebo', 'sans-serif'],
+                    },
+                    colors: {
+                        academic: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        primary: {
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* התאמות עדינות למעברים חלקים */
+        .progress-bar-fill {
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.4s ease;
+        }
+        .fade-in {
+            animation: fadeIn 0.35s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-blue-100 selection:text-blue-900">
+
+    <!-- סרגל עליון: כותרת ומדדי הצלחה -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-4 py-3 sm:px-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-blue-700 text-white p-2 rounded-lg shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">סימולטור ניהול משברים ואתיקה ארגונית</h1>
+                        <p class="text-xs text-slate-500 font-medium">יישום מודל תקשורת המשברים המצבית (SCCT) של טימותי קומבס</p>
+                    </div>
+                </div>
+                <div id="stage-badge" class="self-start md:self-auto bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full text-xs font-semibold">
+                    רקע למקרה הבוחן
+                </div>
+            </div>
+
+            <!-- 3 מדדי הצלחה ויזואליים -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+                <!-- מדד 1: אמון הציבור -->
+                <div class="flex flex-col">
+                    <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                        <span class="text-slate-700 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                            אמון הציבור
+                        </span>
+                        <span id="metric-trust-val" class="font-bold text-slate-900">50%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                        <div id="metric-trust-bar" class="progress-bar-fill bg-blue-600 h-2.5 rounded-full" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <!-- מדד 2: שקיפות ואתיקה -->
+                <div class="flex flex-col">
+                    <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                        <span class="text-slate-700 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                            שקיפות ואתיקה
+                        </span>
+                        <span id="metric-ethics-val" class="font-bold text-slate-900">50%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                        <div id="metric-ethics-bar" class="progress-bar-fill bg-emerald-600 h-2.5 rounded-full" style="width: 50%"></div>
+                    </div>
+                </div>
+
+                <!-- מדד 3: יציבות עסקית -->
+                <div class="flex flex-col">
+                    <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                        <span class="text-slate-700 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            יציבות עסקית
+                        </span>
+                        <span id="metric-stability-val" class="font-bold text-slate-900">50%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                        <div id="metric-stability-bar" class="progress-bar-fill bg-indigo-600 h-2.5 rounded-full" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- תוכן מרכזי (מותאם למסך אחד ללא צורך בגלילה מרובה) -->
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-4 sm:px-6 flex flex-col justify-center">
+        
+        <!-- מסך פתיחה: תיאור המקרה -->
+        <section id="intro-screen" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7 fade-in">
+            <div class="flex items-center gap-2 text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg w-fit text-xs font-bold mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                התראת חירום תקשורתית • חברת "סייבר-פלוס" (CyberPlus)
+            </div>
+            
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">תיאור מקרה הפתיחה</h2>
+            
+            <!-- תיאור מקרה ריאליסטי (עד 4 שורות) -->
+            <p class="text-slate-700 text-base sm:text-lg leading-relaxed bg-slate-50 p-4 rounded-xl border-r-4 border-blue-600 mb-5">
+                חברת הפינטק הישראלית "סייבר-פלוס" מגלה בשעה 16:00 כי מידע אישי ופיננסי רגיש של כ-45,000 לקוחות נחשף ברשת עקב תקלת אבטחה פנימית והגדרת שרת שגויה של צוות הפיתוח. במקביל, כתב טכנולוגיה בכיר בעיתון כלכלי מוביל פונה לדוברות החברה ומודיע כי בכוונתו לפרסם כתבת תחקיר בלעדית בנושא בעוד שעה בדיוק. בתפקידך כמנהל/ת התקשורת והאתיקה של החברה, עליך להוביל את התגובה הארגונית בשלושת השלבים הקריטיים הבאים.
+            </p>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-slate-100">
+                <div class="text-xs text-slate-500">
+                    <strong>הנחיה אקדמית:</strong> בחן/י את אשכול המשבר (אשכול בר-מניעה) ובחר/י אסטרטגיות המאזנות בין אחריות אתית להישרדות עסקית.
+                </div>
+                <button onclick="startSimulation()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                    <span>התחל בניהול המשבר</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- מסך שלבי הסימולציה -->
+        <section id="stage-screen" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 fade-in">
+            <!-- כותרת השלב והתפתחות האירוע -->
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-1.5">
+                    <span id="stage-subtitle" class="text-xs font-bold uppercase tracking-wider text-blue-700">שלב 1 מתוך 3 • שעה 16:15</span>
+                    <span class="text-xs text-slate-400">החלטה אסטרטגית נדרשת</span>
+                </div>
+                <h2 id="stage-title" class="text-lg sm:text-xl font-bold text-slate-900 mb-2">כותרת השלב</h2>
+                <div id="stage-event" class="text-sm sm:text-base text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 leading-relaxed">
+                    תיאור ההתפתחות החדשה באירוע...
+                </div>
+            </div>
+
+            <!-- 3 אפשרויות תגובה -->
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <!-- יאוכלס דינמית ע"י JS -->
+            </div>
+
+            <!-- חלונית משוב אקדמי מנומקת (מופיעה מיד לאחר הבחירה) -->
+            <div id="feedback-panel" class="hidden rounded-xl border p-4 fade-in">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span id="feedback-badge" class="px-2.5 py-0.5 rounded-md text-xs font-bold">סיווג SCCT</span>
+                            <h3 id="feedback-title" class="font-bold text-sm sm:text-base text-slate-900">ניתוח אקדמי של הבחירה</h3>
+                        </div>
+                        <p id="feedback-text" class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                            הסבר אקדמי מפורט...
+                        </p>
+                        <div id="metric-deltas" class="flex flex-wrap gap-2 pt-1 text-xs font-semibold">
+                            <!-- תגיות שינוי מדדים -->
+                        </div>
+                    </div>
+                    <button id="next-stage-btn" onclick="nextStage()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all shrink-0 self-end sm:self-center cursor-pointer">
+                        לשלב הבא ←
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- מסך סיכום ביצועים אישי -->
+        <section id="summary-screen" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7 fade-in">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 mb-4">
+                <div>
+                    <span class="text-xs font-bold text-blue-700">דוח הערכה מסכם • סיום סימולציה</span>
+                    <h2 id="summary-rank-title" class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">פרופיל ניהול המשבר שלך</h2>
+                </div>
+                <div class="bg-slate-100 px-4 py-2 rounded-xl text-center border border-slate-200">
+                    <div class="text-xs text-slate-500">ציון משוקלל</div>
+                    <div id="summary-avg-score" class="text-xl font-extrabold text-blue-700">0%</div>
+                </div>
+            </div>
+
+            <p id="summary-description" class="text-sm sm:text-base text-slate-700 leading-relaxed mb-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+                ניתוח מסכם של ביצועי הסטודנט...
+            </p>
+
+            <!-- פירוט החלטות הסטודנט לאורך 3 השלבים -->
+            <div class="mb-5">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">סקירת החלטותיך לאורך המשבר:</h3>
+                <div id="summary-decisions-list" class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                    <!-- יאוכלס דינמית -->
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-100">
+                <button onclick="resetSimulation()" class="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>התחל סימולציה מחדש</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- כותרת תחתונה קומפקטית -->
+    <footer class="max-w-5xl w-full mx-auto px-4 py-2.5 text-center text-xs text-slate-400">
+        כלי עזר ללמידה אקדמית בתקשורת וניהול • מבוסס על תיאוריית שיקום התדמית ותקשורת המשברים המצבית (W. Timothy Coombs, SCCT)
+    </footer>
+
+    <script>
+        // מבנה הנתונים של 3 שלבי הסימולציה מבוססי SCCT
+        const simulationStages = [
+            {
+                id: 1,
+                subtitle: "שלב 1 מתוך 3 • שעה 16:15 (45 דקות לפני הפרסום)",
+                title: "התגובה הראשונית לפניית העיתונאי",
+                event: "העיתונאי הכלכלי דורש תגובה רשמית לפני פרסום הכתבה. במקביל, צוות הסייבר מאשר שפרטי כרטיסי אשראי אמנם מוצפנים, אך שמות מלאים, מספרי זהות וכתובות דוא\"ל דלפו. כיצד תגיב החברה?",
+                options: [
+                    {
+                        label: "אסטרטגיית הכחשה (Denial)",
+                        title: "הכחשה גורפת ואיום משפטי",
+                        desc: "מסירת תגובה תקיפה לפיה \"מערכות החברה מאובטחות לחלוטין, מדובר בשמועות חסרות בסיס\", ואיום בתביעת דיבה אם הכתבה תפורסם.",
+                        scctType: "אסטרטגיות הכחשה (Denial)",
+                        tone: "negative",
+                        deltas: { trust: -20, ethics: -25, stability: -10 },
+                        feedback: "על פי תיאוריית SCCT של קומבס, תקלת אבטחה פנימית משתייכת ל'אשכול משבר בר-מניעה' (Preventable Cluster) שבו ייחוס האחריות לארגון גבוה מאוד. שימוש באסטרטגיית הכחשה כאשר קיימות הוכחות לדליפה מחריף את הפגיעה במוניטין ברגע שהאמת נחשפת, ומפר את החובה האתית הבסיסית של מידע מתקן (Instructing Information)."
+                    },
+                    {
+                        label: "אסטרטגיית צמצום (Diminish)",
+                        title: "הודעה עמומה והקטנת האירוע",
+                        desc: "פרסום תגובה לקונית: \"החברה חווה עומס טכני נקודתי המטופל בשגרה, אין אינדיקציה לפגיעה מהותית בפרטיות הלקוחות\".",
+                        scctType: "אסטרטגיות צמצום (Diminish)",
+                        tone: "neutral",
+                        deltas: { trust: -5, ethics: -10, stability: +5 },
+                        feedback: "אסטרטגיית צמצום (המעטה בחומרת הנזק) יעילה לפי קומבס רק במשברים מקריים עם אחריות ארגונית נמוכה. במשבר הנובע מטעות אנוש פנימית, ניסיון לגמד את הפגיעה נתפס כחוסר שקיפות, מעורר חשדנות בקרב בעלי עניין ופוגע באמינות המקור של הארגון."
+                    },
+                    {
+                        label: "אסטרטגיית בנייה מחדש (Rebuild)",
+                        title: "שקיפות מלאה והנחיות הגנה ללקוחות",
+                        desc: "אישור דבר התקלה לעיתונאי, פרסום הודעה מיידית ללקוחות המפרטת איזה מידע נחשף, והנחיות מעשיות להחלפת סיסמאות והגנה מפני פישינג.",
+                        scctType: "מידע מתקן + בנייה מחדש (Rebuild)",
+                        tone: "positive",
+                        deltas: { trust: +15, ethics: +20, stability: -5 },
+                        feedback: "בחירה מיטבית לפי קומבס: שלב החובה הראשוני בכל משבר הוא מתן 'מידע מתקן' (Instructing Information) המגן על הנפגעים פיזית וכלכלית. במשבר בר-מניעה, שקיפות מיידית בולמת שמועות, מציבה את הארגון כמקור אמין ומייצרת בסיס לשיקום התדמית, גם אם בטווח המיידי המניה חווה תנודתיות."
+                    }
+                ]
+            },
+            {
+                id: 2,
+                subtitle: "שלב 2 מתוך 3 • יום למחרת, שעה 09:00",
+                title: "התמודדות עם לחץ הרגולטור וזעם הלקוחות",
+                event: "הכתבה פורסמה ועוררה סערה ברשתות החברתיות. הרשות להגנת הפרטיות מודיעה על פתיחת הליך פיקוח, ולקוחות עסקיים גדולים מאיימים להקפיא חוזים. המנכ\"ל מתלבט כיצד להתנהל מול הציבור והלקוחות.",
+                options: [
+                    {
+                        label: "האשמת גורם חיצוני (Scapegoating)",
+                        title: "הטלת האחריות על ספק ענן חיצוני",
+                        desc: "הוצאת הודעה לפיה האשמה מוטלת על ספק תשתיות הענן ועל עובד זוטר שפוטר לאלתר, תוך הדגשה שהנהלת החברה פעלה ללא דופי.",
+                        scctType: "שעיר לעזאזל (Scapegoating)",
+                        tone: "negative",
+                        deltas: { trust: -15, ethics: -20, stability: -5 },
+                        feedback: "לפי SCCT, 'הטלת אשמה' (Scapegoating) היא אסטרטגיית הכחשה הנכשלת כאשר הארגון הוא האחראי הישיר לבקרת האיכות. מבחינה אתית וניהולית, זריקת עובד זוטר או ספק אל מתחת לגלגלים נתפסת כהתנערות ממנהיגות ומעמיקה את אובדן האמון של לקוחות עסקיים ורגולטורים."
+                    },
+                    {
+                        label: "בנייה מחדש ופיצוי (Compensation & Apology)",
+                        title: "לקיחת אחריות מלאה ומתן מעטפת פיצוי",
+                        desc: "התנצלות פומבית של המנכ\"ל, לקיחת אחריות ארגונית מלאה, והענקת שירות ניטור אשראי והגנת סייבר בחינם לכלל הלקוחות לשנתיים.",
+                        scctType: "בנייה מחדש: התנצלות ופיצוי (Rebuild)",
+                        tone: "positive",
+                        deltas: { trust: +20, ethics: +20, stability: +10 },
+                        feedback: "קומבס קובע כי באשכול משברים ברי-מניעה, אסטרטגיות 'בנייה מחדש' (התנצלות מלאה + פיצוי ממשי) הן היחידות שמפחיתות ביעילות את הכעס הציבורי ומנטרלות כוונות לנטישה או חרם צרכני. הפיצוי משקם את ההוגנות הנתפסת ומייצב את הקשרים העסקיים."
+                    },
+                    {
+                        label: "חיזוק תדמיתי (Bolstering)",
+                        title: "התמקדות בהישגי העבר של החברה",
+                        desc: "הפצת קמפיין יח\"צ המזכיר לציבור את תרומת החברה לכלכלה הישראלית, פרסי החדשנות שזכתה בהם ו-10 שנות פעילות ללא רבב.",
+                        scctType: "אסטרטגיות חיזוק (Bolstering)",
+                        tone: "neutral",
+                        deltas: { trust: -5, ethics: -5, stability: 0 },
+                        feedback: "קומבס מגדיר אסטרטגיות 'חיזוק' (תזכורת למעשים טובים בעבר) כאסטרטגיות משניות בלבד. שימוש בהן כתחליף להתנצלות ולפעולה מתקנת במשבר חמור נתפס כיהירות, מנותק מרגשות הנפגעים, ואינו מפחית את ייחוס האחריות לארגון."
+                    }
+                ]
+            },
+            {
+                id: 3,
+                subtitle: "שלב 3 מתוך 3 • שבוע לאחר פרוץ המשבר",
+                title: "שיקום ארוך טווח וממשל תאגידי",
+                event: "הסערה התקשורתית מתחילה לשכוך, אך ועדת הביקורת של הדירקטוריון והמשקיעים דורשים תוכנית פעולה להבטחת יציבות החברה ומניעת הישנות מקרים דומים בעתיד. מה יהיה הצעד המסכם שלך?",
+                options: [
+                    {
+                        label: "פעולה מתקנת מבנית (Corrective Action)",
+                        title: "מינוי ועדה חיצונית ופרסום דוח שקיפות",
+                        desc: "הקמת ועדת בדיקה בלתי תלויה, הטמעת תקני אבטחה מחמירים, והתחייבות לפרסום דוח ביקורת פומבי בעוד 90 יום.",
+                        scctType: "פעולה מתקנת והתאמה (Adjusting Information)",
+                        tone: "positive",
+                        deltas: { trust: +15, ethics: +15, stability: +20 },
+                        feedback: "לפי SCCT, 'מידע מסתגל' (Adjusting Information) ופעולה מתקנת מבנית מסייעים לבעלי העניין להתמודד פסיכולוגית עם המשבר בכך שהם מוכיחים שהארגון הפיק לקחים ולא יחזור על הטעות. צעד זה מחזק את הממשל התאגידי ומחזיר את אמון המשקיעים."
+                    },
+                    {
+                        label: "דעיכה שקטה (Strategic Silence)",
+                        title: "הורדת פרופיל והמתנה שהנושא יישכח",
+                        desc: "הפסקת התקשורת היזומה בנושא האבטחה מתוך הנחה שהציבור כבר עבר לחדשות הבאות, וטיפול בתיקונים באופן פנימי וחשאי.",
+                        scctType: "שתיקה אסטרטגית (Silence)",
+                        tone: "neutral",
+                        deltas: { trust: -5, ethics: -10, stability: +5 },
+                        feedback: "שתיקה אסטרטגית בשלב הפוסט-משבר משאירה את הנרטיב בידי המבקרים והמתחרים. ללא סגירת מעגל תקשורתית והוכחה לשינוי מערכתי, המוניטין הארגוני נותר פגיע (אפקט ה-Velcro עליו מתריע קומבס – משבר עתידי יידבק בקלות לחברה)."
+                    },
+                    {
+                        label: "קיצוץ תקציבי (Cost Cutting)",
+                        title: "צמצום הוצאות השיווק והאבטחה לשיפור הרווח",
+                        desc: "הקפאת השקעות בתשתיות חדשות כדי לפצות על עלויות המשבר ולהציג למשקיעים שורת רווח מאוזנת ברבעון הקרוב.",
+                        scctType: "תעדוף פיננסי קצר-טווח",
+                        tone: "negative",
+                        deltas: { trust: -15, ethics: -20, stability: -15 },
+                        feedback: "מבחינה אתית וניהולית, פגיעה בהשקעות הליבה באבטחת מידע לאחר דליפת נתונים משדרת חוסר הפקת לקחים מוחלט. צעד זה מגביר את החשיפה לרגולציה מחמירה ולנטישת משקיעים מוסדיים לטווח ארוך."
+                    }
+                ]
+            }
+        ];
+
+        // מצב הסימולציה
+        let state = {
+            currentStageIndex: 0,
+            metrics: {
+                trust: 50,
+                ethics: 50,
+                stability: 50
+            },
+            decisions: [],
+            stageAnswered: false
+        };
+
+        // פונקציית עזר להגבלת ערכים בין 0 ל-100
+        function clamp(val) {
+            return Math.max(0, Math.min(100, val));
+        }
+
+        // עדכון התצוגה הוויזואלית של 3 המדדים
+        function updateMetricsUI() {
+            const configs = [
+                { key: 'trust', valId: 'metric-trust-val', barId: 'metric-trust-bar', defaultColor: 'bg-blue-600' },
+                { key: 'ethics', valId: 'metric-ethics-val', barId: 'metric-ethics-bar', defaultColor: 'bg-emerald-600' },
+                { key: 'stability', valId: 'metric-stability-val', barId: 'metric-stability-bar', defaultColor: 'bg-indigo-600' }
+            ];
+
+            configs.forEach(cfg => {
+                const value = state.metrics[cfg.key];
+                const valEl = document.getElementById(cfg.valId);
+                const barEl = document.getElementById(cfg.barId);
+
+                valEl.textContent = `${value}%`;
+                barEl.style.width = `${value}%`;
+
+                // שינוי צבע דינמי לפי מצב המדד
+                barEl.classList.remove('bg-blue-600', 'bg-emerald-600', 'bg-indigo-600', 'bg-amber-500', 'bg-rose-600');
+                if (value < 30) {
+                    barEl.classList.add('bg-rose-600');
+                } else if (value < 45) {
+                    barEl.classList.add('bg-amber-500');
+                } else {
+                    barEl.classList.add(cfg.defaultColor);
+                }
+            });
+        }
+
+        // התחלת הסימולציה ומעבר לשלב 1
+        function startSimulation() {
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('stage-screen').classList.remove('hidden');
+            renderStage();
+        }
+
+        // רינדור השלב הנוכחי
+        function renderStage() {
+            state.stageAnswered = false;
+            const stage = simulationStages[state.currentStageIndex];
+
+            document.getElementById('stage-badge').textContent = `שלב ${stage.id} מתוך ${simulationStages.length}`;
+            document.getElementById('stage-subtitle').textContent = stage.subtitle;
+            document.getElementById('stage-title').textContent = stage.title;
+            document.getElementById('stage-event').textContent = stage.event;
+
+            // הסתרת חלונית המשוב
+            const feedbackPanel = document.getElementById('feedback-panel');
+            feedbackPanel.classList.add('hidden');
+
+            // רינדור 3 אפשרויות הבחירה
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            stage.options.forEach((opt, idx) => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.id = `option-btn-${idx}`;
+                card.className = 'text-right flex flex-col justify-between p-4 rounded-xl border-2 border-slate-200 bg-white hover:border-blue-500 hover:bg-blue-50/30 transition-all cursor-pointer group focus:outline-none';
+                card.onclick = () => selectOption(idx);
+
+                card.innerHTML = `
+                    <div>
+                        <span class="inline-block text-[11px] font-bold text-slate-500 bg-slate-100 group-hover:bg-blue-100 group-hover:text-blue-800 px-2 py-0.5 rounded mb-2 transition-colors">
+                            אפשרות ${idx + 1} • ${opt.label}
+                        </span>
+                        <h3 class="font-bold text-slate-900 text-sm sm:text-base mb-1.5 group-hover:text-blue-800 transition-colors">
+                            ${opt.title}
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                            ${opt.desc}
+                        </p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-100 text-xs font-semibold text-blue-700 flex items-center justify-between">
+                        <span>בחר/י אסטרטגיה זו</span>
+                        <span>←</span>
+                    </div>
+                `;
+                optionsContainer.appendChild(card);
+            });
+        }
+
+        // טיפול בבחירת אפשרות ע"י הסטודנט
+        function selectOption(optionIndex) {
+            if (state.stageAnswered) return;
+            state.stageAnswered = true;
+
+            const stage = simulationStages[state.currentStageIndex];
+            const chosen = stage.options[optionIndex];
+
+            // שמירת ההחלטה לסיכום
+            state.decisions.push({
+                stageTitle: stage.title,
+                optionTitle: chosen.title,
+                scctType: chosen.scctType,
+                tone: chosen.tone
+            });
+
+            // עדכון 3 המדדים
+            state.metrics.trust = clamp(state.metrics.trust + chosen.deltas.trust);
+            state.metrics.ethics = clamp(state.metrics.ethics + chosen.deltas.ethics);
+            state.metrics.stability = clamp(state.metrics.stability + chosen.deltas.stability);
+            updateMetricsUI();
+
+            // עיצוב כפתורי האפשרויות לאחר הבחירה
+            stage.options.forEach((_, idx) => {
+                const btn = document.getElementById(`option-btn-${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:border-blue-500', 'hover:bg-blue-50/30', 'cursor-pointer');
+                if (idx === optionIndex) {
+                    btn.classList.remove('border-slate-200');
+                    if (chosen.tone === 'positive') {
+                        btn.classList.add('border-emerald-600', 'bg-emerald-50/40');
+                    } else if (chosen.tone === 'negative') {
+                        btn.classList.add('border-rose-500', 'bg-rose-50/40');
+                    } else {
+                        btn.classList.add('border-amber-500', 'bg-amber-50/40');
+                    }
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            // הצגת חלונית המשוב האקדמי
+            const feedbackPanel = document.getElementById('feedback-panel');
+            const feedbackBadge = document.getElementById('feedback-badge');
+            const feedbackTitle = document.getElementById('feedback-title');
+            const feedbackText = document.getElementById('feedback-text');
+            const deltasContainer = document.getElementById('metric-deltas');
+            const nextBtn = document.getElementById('next-stage-btn');
+
+            feedbackPanel.className = 'rounded-xl border p-4 fade-in';
+            feedbackBadge.className = 'px-2.5 py-0.5 rounded-md text-xs font-bold';
+
+            if (chosen.tone === 'positive') {
+                feedbackPanel.classList.add('bg-emerald-50/80', 'border-emerald-200');
+                feedbackBadge.classList.add('bg-emerald-200', 'text-emerald-900');
+            } else if (chosen.tone === 'negative') {
+                feedbackPanel.classList.add('bg-rose-50/80', 'border-rose-200');
+                feedbackBadge.classList.add('bg-rose-200', 'text-rose-900');
+            } else {
+                feedbackPanel.classList.add('bg-amber-50/80', 'border-amber-200');
+                feedbackBadge.classList.add('bg-amber-200', 'text-amber-900');
+            }
+
+            feedbackBadge.textContent = chosen.scctType;
+            feedbackTitle.textContent = `ניתוח אקדמי (SCCT): ${chosen.title}`;
+            feedbackText.textContent = chosen.feedback;
+
+            // הצגת תגיות השינוי במדדים
+            const formatDelta = (name, val) => {
+                const sign = val > 0 ? '+' : '';
+                const colorClass = val > 0 ? 'text-emerald-700 bg-emerald-100/80' : (val < 0 ? 'text-rose-700 bg-rose-100/80' : 'text-slate-600 bg-slate-200/80');
+                return `<span class="px-2 py-0.5 rounded ${colorClass}">${name}: ${sign}${val}%</span>`;
+            };
+
+            deltasContainer.innerHTML = `
+                ${formatDelta('אמון הציבור', chosen.deltas.trust)}
+                ${formatDelta('שקיפות ואתיקה', chosen.deltas.ethics)}
+                ${formatDelta('יציבות עסקית', chosen.deltas.stability)}
+            `;
+
+            // עדכון טקסט כפתור ההמשך
+            if (state.currentStageIndex === simulationStages.length - 1) {
+                nextBtn.textContent = 'לסיכום הביצועים האישי ←';
+            } else {
+                nextBtn.textContent = 'לשלב הבא ←';
+            }
+
+            feedbackPanel.classList.remove('hidden');
+        }
+
+        // מעבר לשלב הבא או למסך הסיכום
+        function nextStage() {
+            if (state.currentStageIndex < simulationStages.length - 1) {
+                state.currentStageIndex++;
+                renderStage();
+            } else {
+                showSummary();
+            }
+        }
+
+        // הצגת מסך סיכום הביצועים האישי
+        function showSummary() {
+            document.getElementById('stage-screen').classList.add('hidden');
+            document.getElementById('summary-screen').classList.remove('hidden');
+            document.getElementById('stage-badge').textContent = 'סיכום הסימולציה';
+
+            const { trust, ethics, stability } = state.metrics;
+            const avg = Math.round((trust + ethics + stability) / 3);
+            document.getElementById('summary-avg-score').textContent = `${avg}%`;
+
+            const rankTitle = document.getElementById('summary-rank-title');
+            const descEl = document.getElementById('summary-description');
+
+            if (avg >= 75) {
+                rankTitle.textContent = "מצוינות בניהול משברים ואתיקה ארגונית";
+                descEl.textContent = "ניהלת את המשבר בהתאמה מופתית לעקרונות תיאוריית SCCT של קומבס. זיהית שמדובר במשבר בר-מניעה (Preventable Cluster) המחייב מידע מתקן, שקיפות, התנצלות ופיצוי (אסטרטגיות Rebuild). גישה זו בלמה את הסחף התדמיתי, שמרה על אמון מחזיקי העניין וביצרה את חוסנה האתי והעסקי של החברה.";
+            } else if (avg >= 45) {
+                rankTitle.textContent = "ניהול משבר מאוזן עם אתגרי אמון";
+                descEl.textContent = "ניסית לאזן בין האינטרסים העסקיים המיידיים לבין הדרישות האתיות של הציבור. בחלק מהשלבים נעזרת באסטרטגיות צמצום או חיזוק (Diminish / Bolstering), אשר במשברים הנובעים מתקלה פנימית אינן מספיקות כדי לנטרל את כעס הנפגעים. שילוב מוקדם יותר של לקיחת אחריות מלאה היה משפר משמעותית את שיקום התדמית.";
+            } else {
+                rankTitle.textContent = "ניהול משבר דפנסיבי – פגיעה חמורה במוניטין";
+                descEl.textContent = "בחירותיך התבססו בעיקר על אסטרטגיות הכחשה, צמצום או הטלת אשמה (Denial / Scapegoating). על פי קומבס, כאשר לארגון יש אחריות גבוהה למשבר, אסטרטגיות דפנסיביות נתפסות כחוסר יושרה, מעצימות את העוינות התקשורתית ופוגעות אנושות באמון הציבור וביציבות העסקית לאורך זמן.";
+            }
+
+            // הצגת רשימת ההחלטות שנבחרו
+            const listEl = document.getElementById('summary-decisions-list');
+            listEl.innerHTML = '';
+
+            state.decisions.forEach((dec, idx) => {
+                const borderClass = dec.tone === 'positive' ? 'border-emerald-200 bg-emerald-50/40' : (dec.tone === 'negative' ? 'border-rose-200 bg-rose-50/40' : 'border-amber-200 bg-amber-50/40');
+                const badgeClass = dec.tone === 'positive' ? 'text-emerald-800 bg-emerald-100' : (dec.tone === 'negative' ? 'text-rose-800 bg-rose-100' : 'text-amber-800 bg-amber-100');
+
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-xl border ${borderClass} flex flex-col justify-between`;
+                item.innerHTML = `
+                    <div>
+                        <div class="text-[11px] font-bold text-slate-500 mb-1">שלב ${idx + 1}: ${dec.stageTitle}</div>
+                        <div class="font-bold text-xs sm:text-sm text-slate-900 mb-1.5">${dec.optionTitle}</div>
+                    </div>
+                    <span class="inline-block w-fit text-[11px] font-semibold px-2 py-0.5 rounded ${badgeClass}">
+                        ${dec.scctType}
+                    </span>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        // איפוס והתחלה מחדש
+        function resetSimulation() {
+            state = {
+                currentStageIndex: 0,
+                metrics: {
+                    trust: 50,
+                    ethics: 50,
+                    stability: 50
+                },
+                decisions: [],
+                stageAnswered: false
+            };
+
+            updateMetricsUI();
+            document.getElementById('summary-screen').classList.add('hidden');
+            document.getElementById('stage-screen').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+            document.getElementById('stage-badge').textContent = 'רקע למקרה הבוחן';
+        }
+    </script>
+</body>
+</html>
